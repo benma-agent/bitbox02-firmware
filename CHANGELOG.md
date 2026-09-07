@@ -8,6 +8,7 @@ customers cannot upgrade their bootloader, its changes are recorded separately.
 
 ### [Unreleased]
 - Reject malformed microSD backups instead of crashing
+- Cardano: limit xpub requests to 20 keypaths per batch
 
 ### v9.27.1
 - API: include the installed bootloader version in the device info response
