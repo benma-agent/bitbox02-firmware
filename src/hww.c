@@ -121,6 +121,10 @@ static void _maybe_write_response(hww_packet_rsp_t* response)
         break;
     default:
         response->status = HWW_RSP_NACK;
+        // No task remains after a NACK, including rejection of an oversized response.
+        if (usb_processing_locked(usb_processing_hww())) {
+            usb_processing_unlock();
+        }
         break;
     }
 }
