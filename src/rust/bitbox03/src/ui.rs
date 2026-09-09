@@ -329,7 +329,8 @@ impl<Timer> BitBox03Ui<Timer> {
             lvgl::fonts::INTER_BOLD_32,
             lvgl::LvState::LV_STATE_DEFAULT as u32,
         );
-        self.push(screen);
+        // All handles into the new screen tree are local and are not used again.
+        unsafe { self.push(screen) };
     }
 
     pub fn pop(&mut self) {
@@ -343,7 +344,9 @@ impl<Timer> BitBox03Ui<Timer> {
     }
 
     fn push_guard(&mut self, screen: LvObj) -> ScreenGuard<'_, Timer> {
-        self.push(screen);
+        // Screen builders retain child handles only in callbacks owned by this tree, so the
+        // handles become unreachable when LVGL deletes the callbacks with the tree.
+        unsafe { self.push(screen) };
         ScreenGuard { ui: self }
     }
 
@@ -357,7 +360,15 @@ impl<Timer> BitBox03Ui<Timer> {
         result.await
     }
 
-    pub fn push(&mut self, screen: LvObj) {
+    /// Loads `screen` and transfers ownership of its object tree to the UI.
+    ///
+    /// # Safety
+    ///
+    /// The caller must ensure that no handles to `screen` or any of its descendants can be
+    /// used after the UI pops and recursively deletes the object tree. Handles owned by
+    /// callbacks registered on the same tree are allowed because LVGL deletes those callbacks
+    /// with the tree.
+    pub unsafe fn push(&mut self, screen: LvObj) {
         if let Some(display) = &self.display {
             let current = display.screen_active().expect("No active screen?!");
             self.stack.push(current);
