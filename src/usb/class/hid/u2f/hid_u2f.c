@@ -32,6 +32,7 @@ static uint8_t _report_descriptor[] = {USB_DESC_U2F_REPORT};
 static volatile bool _send_busy = false;
 static volatile bool _has_data = false;
 static volatile bool _request_in_flight = false;
+static uint8_t _read_buf[USB_HID_REPORT_OUT_SIZE] __attribute__((aligned(4)));
 static uint8_t _write_buf[64] __attribute__((aligned(4)));
 
 /**
@@ -53,13 +54,14 @@ static struct usbdc_handler _request_handler = {NULL, (FUNC_PTR)_request};
 bool hid_u2f_read(uint8_t* data)
 {
     if (_request_in_flight && _has_data) {
+        memcpy(data, _read_buf, USB_HID_REPORT_OUT_SIZE);
         _request_in_flight = false;
         return true;
     }
     if (_request_in_flight) {
         return false;
     }
-    if (hid_read(&_func_data, data, USB_HID_REPORT_OUT_SIZE) == ERR_NONE) {
+    if (hid_read(&_func_data, _read_buf, USB_HID_REPORT_OUT_SIZE) == ERR_NONE) {
         _has_data = false;
         _request_in_flight = true;
     }
@@ -86,7 +88,7 @@ bool hid_u2f_write_poll(const uint8_t* data)
 /**
  * The callback function is called after usb data has been received (endpoint = OUT).
  * This is a result of calling _read().
- * The received data is stored in '_out_report'.
+ * The received data is stored in '_read_buf'.
  */
 static uint8_t _rx_cb(const uint8_t ep, const enum usb_xfer_code rc, const uint32_t count)
 {

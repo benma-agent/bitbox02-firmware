@@ -44,6 +44,7 @@ static struct usbdc_handler _request_handler = {NULL, (FUNC_PTR)_request};
 static volatile bool _send_busy = false;
 static volatile bool _has_data = false;
 static volatile bool _request_in_flight = false;
+static uint8_t _read_buf[USB_HID_REPORT_OUT_SIZE] __attribute__((aligned(4)));
 static uint8_t _write_buf[64] __attribute__((aligned(4)));
 
 // First time this function is called it initiates a transfer. Call it multiple times to poll for
@@ -51,13 +52,14 @@ static uint8_t _write_buf[64] __attribute__((aligned(4)));
 bool hid_hww_read(uint8_t* data)
 {
     if (_request_in_flight && _has_data) {
+        memcpy(data, _read_buf, USB_HID_REPORT_OUT_SIZE);
         _request_in_flight = false;
         return true;
     }
     if (_request_in_flight) {
         return false;
     }
-    if (hid_read(&_func_data, data, USB_HID_REPORT_OUT_SIZE) == ERR_NONE) {
+    if (hid_read(&_func_data, _read_buf, USB_HID_REPORT_OUT_SIZE) == ERR_NONE) {
         _has_data = false;
         _request_in_flight = true;
     }

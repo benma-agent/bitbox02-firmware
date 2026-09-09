@@ -41,6 +41,8 @@ else()
      ""
      hww
      "-Wl,--wrap=rust_workflow_u2f_is_active"
+     hid_read
+     "-Wl,--gc-sections,--wrap=hid_read,--wrap=hid_register_callback,--wrap=hid_req"
      u2f_state
      ""
      random
@@ -90,6 +92,24 @@ else()
     target_include_directories(${EXE} PRIVATE
         ${CMAKE_CURRENT_SOURCE_DIR}
     )
+    if(TEST_NAME STREQUAL "hid_read")
+      target_sources(${EXE} PRIVATE
+          ${CMAKE_SOURCE_DIR}/src/usb/class/hid/hww/hid_hww.c
+          ${CMAKE_SOURCE_DIR}/src/usb/class/hid/u2f/hid_u2f.c
+      )
+      target_compile_options(${EXE} PRIVATE -ffunction-sections -fdata-sections -UTESTING)
+      target_include_directories(${EXE} PRIVATE
+          ${CMAKE_SOURCE_DIR}/external/asf4-drivers
+          ${CMAKE_SOURCE_DIR}/external/asf4-drivers/Config
+          ${CMAKE_SOURCE_DIR}/external/asf4-drivers/hal/include
+          ${CMAKE_SOURCE_DIR}/external/asf4-drivers/hal/utils/include
+          ${CMAKE_SOURCE_DIR}/external/asf4-drivers/hpl/usb
+          ${CMAKE_SOURCE_DIR}/external/asf4-drivers/usb
+          ${CMAKE_SOURCE_DIR}/external/asf4-drivers/usb/class
+          ${CMAKE_SOURCE_DIR}/external/asf4-drivers/usb/class/hid
+          ${CMAKE_SOURCE_DIR}/external/asf4-drivers/usb/device
+      )
+    endif()
     if(TEST_NAME STREQUAL "atecc")
       target_compile_options(${EXE} PRIVATE -ffunction-sections -fdata-sections)
       target_include_directories(${EXE} PRIVATE
