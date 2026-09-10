@@ -57,8 +57,8 @@ static bool _read_stage0_descriptor(
         return false;
     }
     memcpy(descriptor_out, descriptor, sizeof(*descriptor_out));
+    // The stage0 image version can differ from ours without changing the descriptor layout.
     return descriptor_out->magic == BB02_STAGE0_DESCRIPTOR_MAGIC &&
-           descriptor_out->stage0_version == BB02_STAGE0_IMAGE_VERSION &&
            descriptor_out->product_id == BB02_STAGE1_PRODUCT_ID;
 }
 

@@ -59,8 +59,8 @@ static void test_legacy_development_markers_absent(void** state)
 static void test_development_stage0_descriptor(void** state)
 {
     (void)state;
-    const bb02_stage0_descriptor_t descriptor = {
-        .stage0_version = BB02_STAGE0_IMAGE_VERSION,
+    bb02_stage0_descriptor_t descriptor = {
+        .stage0_version = 1u,
         .product_id = BB02_STAGE1_PRODUCT_ID,
         .flags = BB02_STAGE0_FLAG_DEVELOPMENT,
         .magic = BB02_STAGE0_DESCRIPTOR_MAGIC,
@@ -69,13 +69,17 @@ static void test_development_stage0_descriptor(void** state)
 
     assert_true(bootloader_upgrade_is_development_bootloader(
         &descriptor, NULL, legacy_bootloader, sizeof(legacy_bootloader)));
+
+    descriptor.stage0_version = BB02_STAGE0_IMAGE_VERSION + 1u;
+    assert_true(bootloader_upgrade_is_development_bootloader(
+        &descriptor, NULL, legacy_bootloader, sizeof(legacy_bootloader)));
 }
 
 static void test_development_stage1_header(void** state)
 {
     (void)state;
-    const bb02_stage0_descriptor_t stage0_descriptor = {
-        .stage0_version = BB02_STAGE0_IMAGE_VERSION,
+    bb02_stage0_descriptor_t stage0_descriptor = {
+        .stage0_version = 1u,
         .product_id = BB02_STAGE1_PRODUCT_ID,
         .flags = 0,
         .magic = BB02_STAGE0_DESCRIPTOR_MAGIC,
@@ -90,6 +94,10 @@ static void test_development_stage1_header(void** state)
     };
     uint8_t legacy_bootloader[256] = {0};
 
+    assert_true(bootloader_upgrade_is_development_bootloader(
+        &stage0_descriptor, &stage1_header, legacy_bootloader, sizeof(legacy_bootloader)));
+
+    stage0_descriptor.stage0_version = BB02_STAGE0_IMAGE_VERSION + 1u;
     assert_true(bootloader_upgrade_is_development_bootloader(
         &stage0_descriptor, &stage1_header, legacy_bootloader, sizeof(legacy_bootloader)));
 }
@@ -120,8 +128,8 @@ static void test_development_stage1_header_future_header_version(void** state)
 static void test_production_stage0_descriptor_skips_legacy_markers(void** state)
 {
     (void)state;
-    const bb02_stage0_descriptor_t stage0_descriptor = {
-        .stage0_version = BB02_STAGE0_IMAGE_VERSION,
+    bb02_stage0_descriptor_t stage0_descriptor = {
+        .stage0_version = 1u,
         .product_id = BB02_STAGE1_PRODUCT_ID,
         .flags = 0,
         .magic = BB02_STAGE0_DESCRIPTOR_MAGIC,
@@ -139,6 +147,10 @@ static void test_production_stage0_descriptor_skips_legacy_markers(void** state)
     _put_bytes(legacy_bootloader, sizeof(legacy_bootloader), 10, "DEV DEVICE");
     _put_bytes(legacy_bootloader, sizeof(legacy_bootloader), 100, "NOT FOR VALUE");
 
+    assert_false(bootloader_upgrade_is_development_bootloader(
+        &stage0_descriptor, &stage1_header, legacy_bootloader, sizeof(legacy_bootloader)));
+
+    stage0_descriptor.stage0_version = BB02_STAGE0_IMAGE_VERSION + 1u;
     assert_false(bootloader_upgrade_is_development_bootloader(
         &stage0_descriptor, &stage1_header, legacy_bootloader, sizeof(legacy_bootloader)));
 }
