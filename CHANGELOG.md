@@ -1,13 +1,14 @@
 # Changelog
 
 The changelog records significant changes to both the firmware and the
-bootloader. Since the bootloader has a separate release cycle and existing
-customers cannot upgrade their bootloader, its changes are recorded separately.
+bootloader. Since the bootloader has a separate release cycle its changes are
+recorded separately.
 
 ## Firmware
 
-### [Unreleased]
+### Unreleased
 - Reject malformed microSD backups instead of crashing
+- Hold the screen reset pin low until firmware is ready initalize it.
 
 ### v9.27.1
 - API: include the installed bootloader version in the device info response
@@ -224,6 +225,9 @@ customers cannot upgrade their bootloader, its changes are recorded separately.
 
 ## Bootloader
 
+### Unreleased
+- Hold the screen reset pin low until bootloader is ready to initalize it.
+
 ### v1.2.2
 - Fix stage1 firmware erase handling for partially erased flash blocks
 
@@ -253,3 +257,8 @@ customers cannot upgrade their bootloader, its changes are recorded separately.
 
 ### v1.0.4
 - Make bootloader mode more user-friendly and prompt for action on empty firmware
+
+## Stage0 bootloader
+
+### Unreleased
+- Hold the screen reset pin low until bootloader is ready to initalize it.

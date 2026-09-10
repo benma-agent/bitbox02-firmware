@@ -314,8 +314,9 @@ static void _oled_set_pins(void)
     gpio_set_pin_level(PIN_OLED_ON, PIN_LOW);
     gpio_set_pin_function(PIN_OLED_ON, GPIO_PIN_FUNCTION_OFF);
 
+    // Hold the OLED in reset until oled_init() releases it to prevent showing stale content.
+    gpio_set_pin_level(PIN_OLED_RES, PIN_LOW);
     gpio_set_pin_direction(PIN_OLED_RES, GPIO_DIRECTION_OUT);
-    gpio_set_pin_level(PIN_OLED_RES, PIN_HIGH);
     gpio_set_pin_function(PIN_OLED_RES, GPIO_PIN_FUNCTION_OFF);
 
     gpio_set_pin_direction(PIN_OLED_CMD, GPIO_DIRECTION_OUT);

@@ -1,5 +1,5 @@
 {
   "firmware": "v9.27.2",
-  "bootloader": "v1.2.2",
-  "stage0": 1
+  "bootloader": "v1.2.3",
+  "stage0": 2
 }
