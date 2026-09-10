@@ -8,7 +8,7 @@
 
 #include "sd_mmc_protocol.h"
 
-static void test_decode_transfer_speed_valid(void **state)
+static void test_decode_transfer_speed_valid(void** state)
 {
     (void)state;
     uint32_t speed;
@@ -23,7 +23,7 @@ static void test_decode_transfer_speed_valid(void **state)
     assert_int_equal(speed, 800000000);
 }
 
-static void test_decode_transfer_speed_reserved_unit(void **state)
+static void test_decode_transfer_speed_reserved_unit(void** state)
 {
     (void)state;
 
@@ -34,7 +34,7 @@ static void test_decode_transfer_speed_reserved_unit(void **state)
     }
 }
 
-static void test_decode_transfer_speed_reserved_multiplier(void **state)
+static void test_decode_transfer_speed_reserved_multiplier(void** state)
 {
     (void)state;
 
