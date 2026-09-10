@@ -58,9 +58,9 @@ bool hid_hww_write_poll(const uint8_t* data);
  * Read data
  *
  * data must fit 64 bytes data.
- * Returns true if there is valid data in the buffer. data is invalidated when this is called again.
- * Returns false if USB subsystem was not ready to receive or there is a request in flight and data
- * is not.
+ * Returns true and copies valid data into the buffer.
+ * Returns false without modifying the buffer if the USB subsystem was not ready to receive or there
+ * is a request in flight and data is not ready.
  */
 bool hid_hww_read(uint8_t* data);
 

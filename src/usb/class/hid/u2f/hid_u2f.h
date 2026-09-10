@@ -49,6 +49,15 @@ int32_t hid_u2f_register_callback(enum hid_trans_type trans_type, FUNC_PTR func)
 void hid_u2f_setup(void);
 
 bool hid_u2f_write_poll(const uint8_t* data);
+
+/**
+ * Read data
+ *
+ * data must fit 64 bytes data.
+ * Returns true and copies valid data into the buffer.
+ * Returns false without modifying the buffer if the USB subsystem was not ready to receive or there
+ * is a request in flight and data is not ready.
+ */
 bool hid_u2f_read(uint8_t* data);
 
 #endif
