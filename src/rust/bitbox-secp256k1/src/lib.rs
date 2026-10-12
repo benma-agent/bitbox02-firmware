@@ -113,16 +113,30 @@ struct SyncWrapper(OnceCell<Secp256k1<All>>);
 // SAFETY: Embedded single-threaded use only, can't use from an interrupt context.
 unsafe impl Sync for SyncWrapper {}
 
+static CONTEXT: SyncWrapper = SyncWrapper(OnceCell::new());
+
+impl GlobalContext {
+    pub fn init(&self, seed: &[u8; 32]) {
+        CONTEXT.0.get_or_init(|| {
+            let mut context = Secp256k1::new();
+            context.seeded_randomize(seed);
+            context
+        });
+    }
+}
+
 impl Deref for GlobalContext {
     type Target = Secp256k1<All>;
 
     fn deref(&self) -> &Self::Target {
-        static CONTEXT: SyncWrapper = SyncWrapper(OnceCell::new());
-
+        // Allow tests to use the context without explicit initialization.
+        #[cfg(any(test, feature = "testing", feature = "c-unit-testing"))]
         CONTEXT.0.get_or_init(|| {
             // Initialized on first access
             Secp256k1::new()
-        })
+        });
+
+        CONTEXT.0.get().expect("secp256k1 context not initialized")
     }
 }
 
