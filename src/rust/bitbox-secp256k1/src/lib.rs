@@ -98,26 +98,27 @@ pub struct SignResult {
     pub recid: u8,
 }
 
-#[derive(Debug, Copy, Clone)]
+#[derive(Debug)]
 pub struct GlobalContext {
-    __private: (), // prevents direct init
+    context: OnceCell<Secp256k1<All>>,
 }
 
 /// Global context, initialized once.
 ///
 /// Port of https://docs.rs/secp256k1/latest/secp256k1/global/struct.GlobalContext.html to no_std.
-pub static SECP256K1: &GlobalContext = &GlobalContext { __private: () };
-
-struct SyncWrapper(OnceCell<Secp256k1<All>>);
+pub static SECP256K1: &GlobalContext = {
+    static INSTANCE: GlobalContext = GlobalContext {
+        context: OnceCell::new(),
+    };
+    &INSTANCE
+};
 
 // SAFETY: Embedded single-threaded use only, can't use from an interrupt context.
-unsafe impl Sync for SyncWrapper {}
-
-static CONTEXT: SyncWrapper = SyncWrapper(OnceCell::new());
+unsafe impl Sync for GlobalContext {}
 
 impl GlobalContext {
     pub fn init(&self, seed: &[u8; 32]) {
-        CONTEXT.0.get_or_init(|| {
+        self.context.get_or_init(|| {
             let mut context = Secp256k1::new();
             context.seeded_randomize(seed);
             context
@@ -131,12 +132,14 @@ impl Deref for GlobalContext {
     fn deref(&self) -> &Self::Target {
         // Allow tests to use the context without explicit initialization.
         #[cfg(any(test, feature = "testing", feature = "c-unit-testing"))]
-        CONTEXT.0.get_or_init(|| {
+        self.context.get_or_init(|| {
             // Initialized on first access
             Secp256k1::new()
         });
 
-        CONTEXT.0.get().expect("secp256k1 context not initialized")
+        self.context
+            .get()
+            .expect("secp256k1 context not initialized")
     }
 }
 
