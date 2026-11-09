@@ -3,6 +3,7 @@
 use super::error::Error;
 use crate::hal::ui::ConfirmParams;
 use crate::hal::{Memory, Ui};
+use crate::i18n::I18n as _;
 use crate::pb;
 use crate::pb::request::Request;
 use crate::pb::response::Response;
@@ -94,11 +95,12 @@ async fn passphrase(hal: &mut impl crate::hal::Hal) -> Result<Zeroizing<String>,
             None => {
                 // Entry was interrupted by the host button. Rejection/cancellation always starts a
                 // fresh device-entry screen, without preserving a partially entered passphrase.
+                let body = crate::tr!(hal, "Enter passphrase\non host?");
                 if hal
                     .ui()
                     .confirm(&ConfirmParams {
                         title: "",
-                        body: "Enter passphrase\non host?",
+                        body: &body,
                         ..Default::default()
                     })
                     .await
@@ -109,7 +111,8 @@ async fn passphrase(hal: &mut impl crate::hal::Hal) -> Result<Zeroizing<String>,
 
                 let request = {
                     let waiting = async {
-                        hal.ui().waiting("Enter passphrase\non host").await;
+                        let message = crate::tr!(hal, "Enter passphrase\non host");
+                        hal.ui().waiting(&message).await;
                         unreachable!()
                     };
                     // Poll the waiting screen first so it is visible before HOST_ENTRY_READY. This
@@ -129,7 +132,8 @@ async fn passphrase(hal: &mut impl crate::hal::Hal) -> Result<Zeroizing<String>,
                 if let Err(message) = validate_host_passphrase(&passphrase) {
                     // Invalid user input restarts entry just like rejection; malformed protocol
                     // messages still fail in next_request.
-                    hal.ui().status(message, false).await;
+                    let message = hal.tr(message);
+                    hal.ui().status(&message, false).await;
                     continue;
                 }
                 (passphrase, true)
@@ -141,7 +145,8 @@ async fn passphrase(hal: &mut impl crate::hal::Hal) -> Result<Zeroizing<String>,
         {
             return Ok(passphrase);
         }
-        hal.ui().status("Please try again", false).await;
+        let status = crate::tr!(hal, "Please try again");
+        hal.ui().status(&status, false).await;
     }
 }
 
