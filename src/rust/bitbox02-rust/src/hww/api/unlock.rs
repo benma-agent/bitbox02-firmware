@@ -65,16 +65,21 @@ async fn device_entry(hal: &mut impl crate::hal::Hal) -> Result<Option<Zeroizing
     }
 }
 
-fn validate_host_passphrase(passphrase: &str) -> Result<(), &'static str> {
+enum HostPassphraseError {
+    TooLong,
+    UnsupportedCharacters,
+}
+
+fn validate_host_passphrase(passphrase: &str) -> Result<(), HostPassphraseError> {
     // Restrict host input to values that can also be entered again on the device.
     if passphrase.len() > MAX_PASSPHRASE_LEN {
-        return Err("Passphrase too\nlong");
+        return Err(HostPassphraseError::TooLong);
     }
     if !passphrase
         .bytes()
         .all(|c| c.is_ascii_alphanumeric() || SPECIAL.contains(&c))
     {
-        return Err("Unsupported\ncharacters");
+        return Err(HostPassphraseError::UnsupportedCharacters);
     }
     Ok(())
 }
@@ -129,10 +134,15 @@ async fn passphrase(hal: &mut impl crate::hal::Hal) -> Result<Zeroizing<String>,
                 let Some(passphrase) = request.passphrase.take().map(Zeroizing::new) else {
                     continue;
                 };
-                if let Err(message) = validate_host_passphrase(&passphrase) {
+                if let Err(error) = validate_host_passphrase(&passphrase) {
                     // Invalid user input restarts entry just like rejection; malformed protocol
                     // messages still fail in next_request.
-                    let message = hal.tr(message);
+                    let message = match error {
+                        HostPassphraseError::TooLong => crate::tr!(hal, "Passphrase too\nlong"),
+                        HostPassphraseError::UnsupportedCharacters => {
+                            crate::tr!(hal, "Unsupported\ncharacters")
+                        }
+                    };
                     hal.ui().status(&message, false).await;
                     continue;
                 }
