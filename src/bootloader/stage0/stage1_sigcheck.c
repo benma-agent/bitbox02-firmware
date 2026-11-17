@@ -177,8 +177,7 @@ static sigcheck_masks_t _check_signatures(
         for (size_t j = 0; j < BB02_STAGE1_SIGNATURE_LEN; j++) {
             signature_bits |= signature[j];
         }
-        // PUKCC verification rejects all-zero signatures on current hardware. Make that
-        // rejection explicit to remain robust against chip or implementation changes.
+        // Reject all-zero signatures even if PUKCC verification succeeds.
         const uint8_t nonzero = (uint8_t)(_is_zero_u8(signature_bits) ^ 1U);
         const uint8_t valid = (uint8_t)(_is_zero_u8(status) & nonzero);
         const uint8_t invalid = (uint8_t)(valid ^ 1U);
