@@ -174,6 +174,7 @@ static sigcheck_masks_t _check_signatures(
         // Force fresh reads in each verification pass under LTO.
         const volatile uint8_t* signature = &signatures[signature_offset];
         uint8_t signature_bits = 0;
+        // OR all bytes to detect an all-zero signature without early exit.
         for (size_t j = 0; j < BB02_STAGE1_SIGNATURE_LEN; j++) {
             signature_bits |= signature[j];
         }
